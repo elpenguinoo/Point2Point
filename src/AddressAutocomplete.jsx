@@ -1,5 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
 
+// Inject Google Maps script if needed
+useEffect(() => {
+  if (!window.google?.maps?.places) {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.error("Google Maps API key is not set.");
+      return;
+    }
+    // Prevent double-injecting the script
+    if (!document.querySelector("#google-maps-script")) {
+      const script = document.createElement('script');
+      script.id = "google-maps-script";
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        if (!autocompleteServiceRef.current && window.google?.maps?.places) {
+          autocompleteServiceRef.current =
+            new window.google.maps.places.AutocompleteService();
+        }
+      };
+      document.body.appendChild(script);
+    }
+  }
+}, []);
+
 /**
  * AddressAutocomplete
  * Props:
